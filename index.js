@@ -1,25 +1,46 @@
 const express = require('express')
 const dataService =require('./dataservice/data.service')
-// const session =require('express-session')
+const session =require('express-session');//we installed and required
 const app =express();
 
 app.use(express.json())
 
-// app.use(session({
-//     secret : 'randomsecurestring',//create id for session..bus using this it will verify,secure thing..if it leakes ohers can acess data
-//     resave :false,//it will save only if we modify
-//     saveUninitialized:false
-// }))
+app.use(session({
+    secret : 'randomsecurestring',//create id for session..but using this it will verify,secure thing..if it leakes ohers can acess data
+    resave :false,//it will save only if we modify
+    saveUninitialized:false
+}))
+
+const logMiddleware=(req,res,next)=>{
+    console.log(req.body)
+    next();
+};
+
+app.use(logMiddleware);
+
+const authMiddleware=(req,res,next)=>{
+    if(!req.session.currentUser){
+        return res.json({
+          status:false,
+          statusCode :401,
+          message:'please login'
+        })
+      }else{
+          next();
+      }
+
+}
 
 app.post('/login',(req,res)=>{
     
-const result=dataService.login(req.body.acno,req.body.password)
+const result=dataService.login(req,req.body.acno,req.body.password)
+
 
 
 res.status(result.statusCode).json(result);
 })
 
-app.post('/deposit',(req,res)=>{
+app.post('/deposit',authMiddleware,(req,res)=>{
    
 const result=dataService.deposit(req.body.acno,req.body.pin,req.body.amount1)
 res.status(result.statusCode).json(result);
@@ -30,13 +51,13 @@ app.post('/register',(req,res)=>{
     res.status(result.statusCode).json(result);
     })
 
-app.post('/withdraw',(req,res)=>{
+app.post('/withdraw',authMiddleware,(req,res)=>{
 const result=dataService.withdraw(req.body.acno,req.body.pin,req.body.amount1)
 res.status(result.statusCode).json(result);
 })
 
-app.get('/transactions',(req,res)=>{
-    const result=dataService.getTransactions()
+app.get('/transactions',authMiddleware,(req,res)=>{
+    const result=dataService.getTransactions(req)
     res.status(200
         ).json(result);
     })

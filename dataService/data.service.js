@@ -42,7 +42,7 @@ const register=(name, acno, pin, password)=> {
     }
 }
 
-const login=(acno, password)=> {
+const login=(req,acno, password)=> {
   console.log(acno,password)
     var acno1 = parseInt(acno);
     console.log(accountDetails);
@@ -51,7 +51,7 @@ const login=(acno, password)=> {
       var pwd = data[acno].password
       if (pwd == password) {
         
-        currentUser = data[acno];
+        req.session.currentUser = data[acno];
         // this.saveDetails();
         return{
             status:true,
@@ -69,13 +69,7 @@ const login=(acno, password)=> {
 
 const deposit = (acno, pin, amount1) => {
 
-  // if(!req.session.currentUser){
-  //   return{
-  //     status:true,
-  //     statusCode :401,
-  //     message:'please login'
-  //   }
-  // }
+ 
     var amount = parseInt(amount1)
     var data = accountDetails;
     if (acno in data) {
@@ -157,8 +151,8 @@ const deposit = (acno, pin, amount1) => {
   }
 
 
- const getTransactions=()=>{
-    return accountDetails[currentUser.acno].transactions
+ const getTransactions=(req)=>{
+    return accountDetails[req.session.currentUser.acno].transactions
   }
 
 module.exports={
