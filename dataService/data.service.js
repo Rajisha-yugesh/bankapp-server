@@ -79,7 +79,7 @@ const login = (req, acno, password) => {
   var acno = parseInt(acno);
 
   return db.User.findOne({
-    acno:acno,
+    acno,
     
     
     password
@@ -91,7 +91,8 @@ const login = (req, acno, password) => {
         return {
           status: true,
           statusCode: 200,
-          message: "logged in"
+          message: "logged in",
+          name:user.name
         }
       }
       return {
@@ -131,7 +132,7 @@ const deposit = (acno, pin, amount1) => {
   return db.User.findOne({
     acno,
     pin,
-    amount:amount1
+    
   })
     .then(user => {
 
@@ -143,7 +144,7 @@ const deposit = (acno, pin, amount1) => {
         }
       }
 
-      user.balance+=parseInt(amount1)
+      user.balance += parseInt(amount1)
       user.transactions.push({
         amount:amount1,
         typeOfTransaction:'credit'
@@ -151,6 +152,7 @@ const deposit = (acno, pin, amount1) => {
 
 
       })
+      console.log(user.transactions)
       user.save();
   
 
@@ -200,13 +202,23 @@ const deposit = (acno, pin, amount1) => {
 
   }
 
-  const withdraw = (acno, pin, amount1) => {
+  const withdraw = (req,acno, pin, amount1) => {
     return db.User.findOne({
       acno,
       pin,
-      amount:amount1
+      
     })
       .then(user => {
+
+        if(req.session.currentUser!=acno){
+          return{
+            status:false,
+            statusCode:422,
+            message:'you are no allowed to do transactions',
+           
+
+          }
+        }
   
         if (!user) {
           return {
@@ -215,6 +227,8 @@ const deposit = (acno, pin, amount1) => {
             message: "incorrect account details"
           }
         }
+
+      
 
         if(user.balance<parseInt(amount1)){
           return{
@@ -255,9 +269,15 @@ const deposit = (acno, pin, amount1) => {
       acno:req.session.currentUser
     })
     .then(user=>{
-      if(user){
-        return user.transactions;
-      }
+       
+        return {
+          status: true,
+          statusCode: 200,
+          
+          transactions:user.transactions
+
+        }
+      
     })
     
     // return accountDetails[req.session.currentUser.acno].transactions

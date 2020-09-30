@@ -65,7 +65,7 @@ app.post('/register',(req,res)=>{
     })
 
 app.post('/withdraw',authMiddleware,(req,res)=>{
-dataService.withdraw(req.body.acno,req.body.pin,req.body.amount1)
+dataService.withdraw(req,req.body.acno,req.body.pin,req.body.amount1)
 .then(result=>{
     res.status(result.statusCode).json(result)
 })
